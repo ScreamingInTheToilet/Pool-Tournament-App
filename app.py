@@ -1,8 +1,6 @@
 import json
 
-
-
-tournament_list = []
+player_list = []
 
 '''
 
