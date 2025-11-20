@@ -6,16 +6,73 @@ import sys
 
 #let's create a tournament by creating a Tournament object
 
-t1 = Tournament("swimming contest",["Srinjoy","Olivia","Samuel","Jacob","Hieu","QM"])
+#generate file report
+def generate_report(empty_list, occupied_list):
+    # Column labels for the system report (you can rename these)
+    left_label = "Unassigned Records"
+    right_label = "Active Records"
+
+    # If a list is empty, replace it with ["None"] so the report shows something
+    left_items = empty_list if empty_list else ["None"]
+    right_items = occupied_list if occupied_list else ["None"]
+
+    # Determine how many rows to print based on the longer list
+    max_rows = max(len(left_items), len(right_items))
+
+    # Print the header row with fixed-width columns (25 characters each)
+    print(f"{left_label:<25} {right_label:<25}")
+    # Print a separation line for readability
+    print("-" * 50)
+
+    # Loop over all rows needed
+    for i in range(max_rows):
+        # If the index exists, use the item; otherwise use an empty string
+        left_val = left_items[i] if i < len(left_items) else ""
+        right_val = right_items[i] if i < len(right_items) else ""
+
+        # Print both values in aligned columns
+        print(f"{left_val:<25} {right_val:<25}")
 
 
+#save tournament
+def save():
+    a,b = Repository.check() #getting a list of occupied playerfiles and a list of empty playerfiles
+    display_delayed_msg('')
+    generate_report(a,b)
+
+
+#sending delayed dialogue
 def display_delayed_msg(msg:str):
     for i in range(3):
         print(".", end="", flush=True)
         time.sleep(0.5)
     print()
     print(msg)
-    
+
+
+
+#running the matches (two players against each other)
+def match_process(match_list_:list,match_list_2:list, tournament_obj:Tournament):
+    tournament_obj.player_list = []#clear player_list to reconstruct with winning players from current stage
+
+    #match_list_ is the readable version, match_list_2 is the nonreadable version (nested list)
+    for i in match_list_2:#looping thru each list of paired players inside the nested list
+        if len(i) == 1:
+        #if the match items is odd i.e containing single players on bye, 
+            continue
+        time.sleep(1)
+        print(f'Round {match_list_2.index(i)+1}, '+match_list_[match_list_2.index(i)])
+        time.sleep(0.5)
+        print('Please declare this round\'s winner.')
+        winner = input('>>')
+        if winner in i:#if the selected winner is in the individual match list items
+            tournament_obj.declare_winner(i,winner)
+    #once every match item in the match_list is processed, the winners of the current tournament stage will be declared.
+    display_delayed_msg(f'The winner of stage {tournament_obj.stage} is {', '.join(tournament_obj.player_list)}')
+    tournament_obj.stage += 1
+        
+
+
 
 def start_tournament():
 
@@ -27,6 +84,7 @@ Alternatively, type the command "$load" to reopen saved tournaments.
         )
     user_input = input('>>')
     list_of_players = user_input.split()
+
     while True:
         if len(list_of_players)>len(set(list_of_players)):
         #set removes repeated items. If the length of set(LOP) is less than LOP, then there's repeated items.
@@ -41,12 +99,13 @@ Alternatively, type the command "$load" to reopen saved tournaments.
             break
     display_delayed_msg(
         '''
-Tournament generatedly successfully. Type "begin" in the command line to start the tournament.
+Tournament generated successfully. Type "begin" in the command line to start the tournament.
 Alternatively, type "kill" to end the program.
         '''
     )
     while True:
         user_input = input('>>')
+        #initialize phase (when we randomize the playerlist and begin the tournament)
         if user_input == "begin":
             t.randomize() #randomize player_list
             match_list = t.pairing() #t.pairing() pairs items inside the randomized player_list
@@ -74,10 +133,59 @@ The following pairings have been confirmed for stage {t.stage}. Players without 
 {"  ".join(row1)}
 {"  ".join(row2)}
 '''
+
     )
-    for i in match_list:
+    match_process(items, match_list, t)
+    #continuation phase (continue pairing players for matches until the end)
+    while True:
         time.sleep(1)
-        print(f'Round {match_list.index(i)+1}')
+        print(
+'''
+Next tournament stage commences. If you wish to continue, type "continue" otherwise type "kill".
+If you wish to save tournament until later, type "save".
+'''
+            )
+        user_input = input('>>')
+        if user_input == "continue":
+            if len(t.player_list) != 1:#if the length of the player list is not 1
+
+                match_list = t.pairing()
+                items = [f"{pair[0]} vs {pair[1]}" if len(pair)==2 else pair[0] for pair in match_list]
+                #first column of matches: even indices
+                row1 = items[0::2]
+                #second column: odd indices
+                row2 = items[1::2]
+                '''
+                given items (list containing matches) is [A,B,C,D,E]
+                items[0::2] start at index 0, step by 2 -> [A,C,E]
+                items[1::2] start at index 1, step by 2 -> [B,D] 
+                '''
+                display_delayed_msg(
+f'''
+The following pairings have been confirmed for stage {t.stage}. Players without a pair receives a bye.
+{"  ".join(row1)}
+{"  ".join(row2)}
+'''
+            )
+                match_process(items, match_list,t)#processing the match
+            
+
+            
+                
+        elif user_input == "kill":
+            break
+        elif user_input == "save":
+            print(
+                '''
+Please make a selection of the following files to save your tournament.
+'''
+                )
+        else:
+            print('Please make an appropriate selection of the following mentioned above.')
+
+
+        
+
 
     
 
