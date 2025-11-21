@@ -75,6 +75,10 @@ def match_process(match_list_:list,match_list_2:list, tournament_obj:Tournament)
     display_delayed_msg(f'The remainining player(s) of stage {tournament_obj.stage} is {', '.join(tournament_obj.player_list)}')
     tournament_obj.stage += 1
 
+display_delayed_msg('Hello user, welcome to the versatile TOURNAMENT console')
+time.sleep(0.5)
+print('To begin, type "start" or "help" in the command line')
+user_input = input('>>')
 
 
 
